@@ -1,12 +1,11 @@
-// dto/create-user.dto.ts
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateUserDto {
+export class UpdatePasswordDto {
   @IsNotEmpty()
   @IsString()
-  login: string;
+  oldPassword: string; // previous password
 
   @IsNotEmpty()
   @IsString()
-  password: string;
+  newPassword: string; // new password
 }
