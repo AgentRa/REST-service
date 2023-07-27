@@ -12,9 +12,10 @@ import {
 import { AlbumsService } from './albums.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { v4 as uuidv4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { InvalidUUIDExeption } from '../users/errors';
 import { AlbumEntity } from './entities/album.entity';
+import { plainToClass } from 'class-transformer';
 
 @Controller('album')
 export class AlbumsController {
@@ -23,12 +24,7 @@ export class AlbumsController {
   @Post()
   @HttpCode(201)
   create(@Body() createAlbumDto: CreateAlbumDto) {
-    const record = {
-      id: uuidv4(),
-      name: createAlbumDto.name,
-      year: createAlbumDto.year,
-      artistId: createAlbumDto.artistId,
-    };
+    const record = plainToClass(AlbumEntity, createAlbumDto);
     return this.albumsService.create(record);
   }
 

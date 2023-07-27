@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateArtistDto } from './dto/create-artist.dto';
 import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
 import { ArtistEntity } from './entities/artist.entity';
-import { v4 as uuidv4 } from 'uuid';
 import { TracksService } from '../tracks/tracks.service';
 import { AlbumsService } from '../albums/albums.service';
 
@@ -11,12 +9,8 @@ export class ArtistsService extends InMemoryDBService<ArtistEntity> {
   @Inject(TracksService) private readonly tracksService: TracksService;
   @Inject(AlbumsService) private readonly albumsService: AlbumsService;
 
-  create(createArtistDto: CreateArtistDto) {
-    return super.create({
-      id: uuidv4(),
-      name: createArtistDto.name,
-      grammy: createArtistDto.grammy,
-    });
+  create(record: ArtistEntity) {
+    return super.create(record);
   }
 
   findAll() {

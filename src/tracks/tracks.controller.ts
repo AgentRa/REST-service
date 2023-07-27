@@ -15,6 +15,7 @@ import { validate } from 'uuid';
 import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
+import { plainToClass } from 'class-transformer';
 
 @Controller('track')
 export class TracksController {
@@ -23,7 +24,8 @@ export class TracksController {
   @Post()
   @HttpCode(201)
   create(@Body() createTrackDto: CreateTrackDto) {
-    return this.tracksService.create(createTrackDto);
+    const record = plainToClass(TrackEntity, createTrackDto);
+    return this.tracksService.create(record);
   }
 
   @Get()

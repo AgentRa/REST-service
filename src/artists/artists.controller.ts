@@ -15,6 +15,7 @@ import { validate } from 'uuid';
 import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
+import { plainToClass } from 'class-transformer';
 
 @Controller('artist')
 export class ArtistsController {
@@ -23,7 +24,8 @@ export class ArtistsController {
   @Post()
   @HttpCode(201)
   create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistsService.create(createArtistDto);
+    const record = plainToClass(ArtistEntity, createArtistDto);
+    return this.artistsService.create(record);
   }
 
   @Get()

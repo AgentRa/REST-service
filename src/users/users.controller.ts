@@ -17,6 +17,8 @@ import {
 } from './errors';
 import { validate } from 'uuid';
 import { UpdatePasswordDto } from './dto/update-user-password.dto';
+import { plainToClass } from 'class-transformer';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('user')
 export class UsersController {
@@ -25,7 +27,8 @@ export class UsersController {
   @Post()
   @HttpCode(201)
   create(@Body() createUserDto: CreateUserDto) {
-    const responseWithout = this.usersService.create(createUserDto);
+    const record = plainToClass(UserEntity, createUserDto);
+    const responseWithout = { ...this.usersService.create(record) };
     delete responseWithout['password'];
     return responseWithout;
   }
@@ -61,18 +64,13 @@ export class UsersController {
     if (user.password !== updatePasswordDto.oldPassword)
       throw new WrongOldPasswordExeption();
 
-    const record = {
-      ...user,
-      password: updatePasswordDto.newPassword,
-      version: user.version + 1,
-      updatedAt: Date.now(),
-    };
+    const updatedUser = plainToClass(UserEntity, user).updatePassword(
+      updatePasswordDto,
+    );
 
-    const responseWithout = this.usersService.update(record);
+    const responseWithout = { ...this.usersService.update(updatedUser) };
     delete responseWithout['password'];
     return responseWithout;
-
-    // TODO: make util for that
   }
 
   @Delete(':id')
