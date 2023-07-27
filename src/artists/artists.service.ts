@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
-import { UpdateArtistDto } from './dto/update-artist.dto';
+import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
+import { ArtistEntity } from './entities/artist.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
-export class ArtistsService {
+export class ArtistsService extends InMemoryDBService<ArtistEntity> {
   create(createArtistDto: CreateArtistDto) {
-    return 'This action adds a new artist';
+    return super.create({
+      id: uuidv4(),
+      name: createArtistDto.name,
+      grammy: createArtistDto.grammy,
+    });
   }
 
   findAll() {
-    return `This action returns all artists`;
+    return super.getAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} artist`;
+  findOne(id: string) {
+    return super.get(id);
   }
 
-  update(id: number, updateArtistDto: UpdateArtistDto) {
-    return `This action updates a #${id} artist`;
+  update(artist: ArtistEntity) {
+    super.update(artist);
+    return artist;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} artist`;
+  remove(id: string) {
+    super.delete(id);
   }
 }

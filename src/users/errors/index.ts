@@ -1,17 +1,4 @@
-import { HttpException } from "@nestjs/common";
-
-// export class DuplicateUsernameException extends HttpException {
-//   constructor() {
-//     super(
-//       {
-//         message: 'Username already exists',
-//         error: 'Duplicate username',
-//         statusCode: 400,
-//       },
-//       400,
-//     );
-//   }
-// }
+import { HttpException } from '@nestjs/common';
 
 export class UserDoesNotExistException extends HttpException {
   constructor() {
