@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Inject,
   Param,
   Post,
   Put,
@@ -16,10 +17,14 @@ import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { plainToClass } from 'class-transformer';
+import { FavoriteEntity } from '../favorites/entities/favorite.entity';
 
 @Controller('artist')
 export class ArtistsController {
-  constructor(private readonly artistsService: ArtistsService) {}
+  constructor(
+    private readonly artistsService: ArtistsService,
+    @Inject('DATABASE') private favorites: FavoriteEntity,
+  ) {}
 
   @Post()
   @HttpCode(201)
@@ -70,6 +75,11 @@ export class ArtistsController {
     const artist = this.artistsService.findOne(id);
     if (!artist) throw new HttpException('Artist does not exist', 404);
     //TODO dublicate of code
+
+    const index = this.favorites.artists.findIndex(
+      (artist) => artist.id === id,
+    );
+    this.favorites.artists.splice(index, 1);
 
     this.artistsService.remove(id);
   }

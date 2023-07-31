@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Inject,
   Param,
   Post,
   Put,
@@ -16,10 +17,14 @@ import { validate } from 'uuid';
 import { InvalidUUIDExeption } from '../users/errors';
 import { AlbumEntity } from './entities/album.entity';
 import { plainToClass } from 'class-transformer';
+import { FavoriteEntity } from '../favorites/entities/favorite.entity';
 
 @Controller('album')
 export class AlbumsController {
-  constructor(private readonly albumsService: AlbumsService) {}
+  constructor(
+    private readonly albumsService: AlbumsService,
+    @Inject('DATABASE') private favorites: FavoriteEntity,
+  ) {}
 
   @Post()
   @HttpCode(201)
@@ -70,6 +75,9 @@ export class AlbumsController {
 
     const album = this.albumsService.findOne(id);
     if (!album) throw new HttpException('Album does not exist', 404);
+
+    const index = this.favorites.albums.findIndex((artist) => artist.id === id);
+    this.favorites.albums.splice(index, 1);
 
     return this.albumsService.remove(id);
   }

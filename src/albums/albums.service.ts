@@ -36,6 +36,7 @@ export class AlbumsService extends InMemoryDBService<AlbumEntity> {
         this.tracksService.update(track);
       });
     }
+
     super.delete(id);
   }
 }

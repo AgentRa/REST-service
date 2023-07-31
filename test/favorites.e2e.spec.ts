@@ -2,14 +2,14 @@ import { request } from './lib';
 import { StatusCodes } from 'http-status-codes';
 import {
   getTokenAndUserId,
-  shouldAuthorizationBeTested,
   removeTokenUser,
+  shouldAuthorizationBeTested,
 } from './utils';
 import {
   albumsRoutes,
   artistsRoutes,
-  tracksRoutes,
   favoritesRoutes,
+  tracksRoutes,
 } from './endpoints';
 
 const createAlbumDto = {
