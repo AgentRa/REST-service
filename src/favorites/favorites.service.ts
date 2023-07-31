@@ -1,19 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ArtistEntity } from '../artists/entities/artist.entity';
 import { AlbumEntity } from '../albums/entities/album.entity';
 import { TrackEntity } from '../tracks/entities/track.entity';
+import { DatabaseService } from '../database/database.service';
 import { FavoriteEntity } from './entities/favorite.entity';
-import { TracksService } from '../tracks/tracks.service';
-import { AlbumsService } from '../albums/albums.service';
-import { ArtistsService } from '../artists/artists.service';
 
 @Injectable()
 export class FavoritesService {
-  constructor(@Inject('DATABASE') private favorites: FavoriteEntity) {}
+  constructor(private databaseService: DatabaseService) {}
 
-  @Inject(TracksService) private readonly tracksService: TracksService;
-  @Inject(AlbumsService) private readonly albumsService: AlbumsService;
-  @Inject(ArtistsService) private readonly artistService: ArtistsService;
+  findAll(): FavoriteEntity {
+    return this.databaseService.favorites;
+  }
 
   addToFavorites(
     type: 'artist' | 'album' | 'track',
@@ -21,13 +19,13 @@ export class FavoritesService {
   ) {
     switch (type) {
       case 'artist':
-        this.favorites.artists.push(record as ArtistEntity);
+        this.databaseService.favorites.artists.push(record as ArtistEntity);
         break;
       case 'album':
-        this.favorites.albums.push(record as AlbumEntity);
+        this.databaseService.favorites.albums.push(record as AlbumEntity);
         break;
       case 'track':
-        this.favorites.tracks.push(record as TrackEntity);
+        this.databaseService.favorites.tracks.push(record as TrackEntity);
         break;
     }
   }
@@ -35,11 +33,37 @@ export class FavoritesService {
   findOneByType(type: 'artist' | 'album' | 'track', id: string) {
     switch (type) {
       case 'artist':
-        return this.artistService.findOne(id);
+        return this.databaseService.artists.findBy(id);
       case 'album':
-        return this.albumsService.findOne(id);
+        return this.databaseService.albums.findBy(id);
       case 'track':
-        return this.tracksService.findOne(id);
+        return this.databaseService.tracks.findBy(id);
     }
+  }
+
+  removeFromFavorites(type: 'artist' | 'album' | 'track', id: string): boolean {
+    let index = -1;
+
+    switch (type) {
+      case 'artist':
+        index = this.databaseService.favorites.artists.findIndex(
+          (artist) => artist.id === id,
+        );
+        this.databaseService.favorites.artists.splice(index, 1);
+        break;
+      case 'album':
+        index = this.databaseService.favorites.albums.findIndex(
+          (album) => album.id === id,
+        );
+        this.databaseService.favorites.albums.splice(index, 1);
+        break;
+      case 'track':
+        index = this.databaseService.favorites.tracks.findIndex(
+          (track) => track.id === id,
+        );
+        this.databaseService.favorites.tracks.splice(index, 1);
+        break;
+    }
+    return index !== -1;
   }
 }

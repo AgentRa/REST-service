@@ -28,9 +28,7 @@ export class UsersController {
   @HttpCode(201)
   create(@Body() createUserDto: CreateUserDto) {
     const record = plainToClass(UserEntity, createUserDto);
-    const responseWithout = { ...this.usersService.create(record) };
-    delete responseWithout['password'];
-    return responseWithout;
+    return this.usersService.create(record);
   }
 
   @Get()
@@ -41,10 +39,10 @@ export class UsersController {
 
   @Get(':id')
   @HttpCode(200)
-  findOne(@Param('id') id: string) {
+  findBy(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const user = this.usersService.findOne(id);
+    const user = this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
     return user;
@@ -58,7 +56,7 @@ export class UsersController {
   ) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const user = this.usersService.findOne(id);
+    const user = this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
     if (user.password !== updatePasswordDto.oldPassword)
@@ -68,9 +66,7 @@ export class UsersController {
       updatePasswordDto,
     );
 
-    const responseWithout = { ...this.usersService.update(updatedUser) };
-    delete responseWithout['password'];
-    return responseWithout;
+    return this.usersService.update(updatedUser);
   }
 
   @Delete(':id')
@@ -78,7 +74,7 @@ export class UsersController {
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const user = this.usersService.findOne(id);
+    const user = this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
     this.usersService.remove(id);

@@ -1,27 +1,33 @@
 import { Injectable } from '@nestjs/common';
-import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
 import { TrackEntity } from './entities/track.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
-export class TracksService extends InMemoryDBService<TrackEntity> {
+export class TracksService {
+  constructor(private databaseService: DatabaseService) {}
+
   create(record: TrackEntity) {
-    return super.create(record);
+    return this.databaseService.tracks.create(record);
   }
 
   findAll() {
-    return super.getAll();
+    return this.databaseService.tracks.findAll();
   }
 
-  findOne(id: string) {
-    return super.get(id);
+  findBy(id: string) {
+    return this.databaseService.tracks.findBy(id);
   }
 
-  update(track: TrackEntity) {
-    super.update(track);
-    return track;
+  update(record: TrackEntity) {
+    return this.databaseService.tracks.update(record);
   }
 
   remove(id: string) {
-    super.delete(id);
+    const index = this.databaseService.favorites.tracks.findIndex(
+      (track) => track.id === id,
+    );
+    this.databaseService.favorites.tracks.splice(index, 1);
+
+    this.databaseService.tracks.remove(id);
   }
 }

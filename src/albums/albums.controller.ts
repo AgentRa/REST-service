@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpException,
-  Inject,
   Param,
   Post,
   Put,
@@ -17,14 +16,10 @@ import { validate } from 'uuid';
 import { InvalidUUIDExeption } from '../users/errors';
 import { AlbumEntity } from './entities/album.entity';
 import { plainToClass } from 'class-transformer';
-import { FavoriteEntity } from '../favorites/entities/favorite.entity';
 
 @Controller('album')
 export class AlbumsController {
-  constructor(
-    private readonly albumsService: AlbumsService,
-    @Inject('DATABASE') private favorites: FavoriteEntity,
-  ) {}
+  constructor(private readonly albumsService: AlbumsService) {}
 
   @Post()
   @HttpCode(201)
@@ -44,7 +39,7 @@ export class AlbumsController {
   findOne(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const album = this.albumsService.findOne(id);
+    const album = this.albumsService.findBy(id);
     if (!album) throw new HttpException('Album does not exist', 404);
 
     return album;
@@ -55,7 +50,7 @@ export class AlbumsController {
   update(@Param('id') id: string, @Body() updateAlbumDto: UpdateAlbumDto) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const album = this.albumsService.findOne(id);
+    const album = this.albumsService.findBy(id);
     if (!album) throw new HttpException('Album does not exist', 404);
 
     const record: AlbumEntity = {
@@ -73,11 +68,8 @@ export class AlbumsController {
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const album = this.albumsService.findOne(id);
+    const album = this.albumsService.findBy(id);
     if (!album) throw new HttpException('Album does not exist', 404);
-
-    const index = this.favorites.albums.findIndex((artist) => artist.id === id);
-    this.favorites.albums.splice(index, 1);
 
     return this.albumsService.remove(id);
   }

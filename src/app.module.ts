@@ -5,7 +5,7 @@ import { ArtistsModule } from './artists/artists.module';
 import { TracksModule } from './tracks/tracks.module';
 import { UsersModule } from './users/users.module';
 import { FavoritesModule } from './favorites/favorites.module';
-import { favoritesDB } from './favorites/favoritesDB';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { favoritesDB } from './favorites/favoritesDB';
     FavoritesModule,
     AlbumsModule,
     TracksModule,
-    favoritesDB,
+    DatabaseModule,
   ],
 })
 export class AppModule {}

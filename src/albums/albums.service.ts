@@ -1,42 +1,49 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
+import { Injectable } from '@nestjs/common';
 import { AlbumEntity } from './entities/album.entity';
-import { TracksService } from '../tracks/tracks.service';
+import { DatabaseService } from '../database/database.service';
+import { TrackEntity } from '../tracks/entities/track.entity';
 
 @Injectable()
-export class AlbumsService extends InMemoryDBService<AlbumEntity> {
-  @Inject(TracksService)
-  private readonly tracksService: TracksService;
+export class AlbumsService {
+  constructor(private databaseService: DatabaseService) {}
 
   create(record: AlbumEntity) {
-    return super.create(record);
+    return this.databaseService.albums.create(record);
   }
 
-  findAll() {
-    return super.getAll();
+  findAll(): AlbumEntity[] {
+    return this.databaseService.albums.findAll();
   }
 
-  findOne(id: string) {
-    return super.get(id);
+  findBy(id: string) {
+    return this.databaseService.albums.findBy(id);
   }
 
-  update(album: AlbumEntity) {
-    super.update(album);
-    return album;
+  update(record: AlbumEntity) {
+    return this.databaseService.albums.update(record);
   }
 
   remove(id: string) {
-    const tracksWithAlbumId = this.tracksService.query(
-      (track) => track?.albumId === id,
+    const tracksWithAlbumId = this.databaseService.tracks.records.reduce(
+      (acc: TrackEntity[], track: TrackEntity) => {
+        if (track?.albumId === id) acc.push(track);
+        return acc;
+      },
+      [],
     );
 
     if (tracksWithAlbumId.length) {
-      tracksWithAlbumId.map((track) => {
+      tracksWithAlbumId.map((track: TrackEntity) => {
         track.albumId = null;
-        this.tracksService.update(track);
+        this.databaseService.tracks.update(track);
       });
     }
 
-    super.delete(id);
+    const index = this.databaseService.favorites.albums.findIndex(
+      (album) => album.id === id,
+    );
+    this.databaseService.favorites.albums.splice(index, 1);
+
+    this.databaseService.albums.remove(id);
   }
 }

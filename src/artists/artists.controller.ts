@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpException,
-  Inject,
   Param,
   Post,
   Put,
@@ -17,14 +16,10 @@ import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { plainToClass } from 'class-transformer';
-import { FavoriteEntity } from '../favorites/entities/favorite.entity';
 
 @Controller('artist')
 export class ArtistsController {
-  constructor(
-    private readonly artistsService: ArtistsService,
-    @Inject('DATABASE') private favorites: FavoriteEntity,
-  ) {}
+  constructor(private readonly artistsService: ArtistsService) {}
 
   @Post()
   @HttpCode(201)
@@ -44,7 +39,7 @@ export class ArtistsController {
   findOne(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const artist = this.artistsService.findOne(id);
+    const artist = this.artistsService.findBy(id);
     if (!artist) throw new HttpException('Artist does not exist', 404);
 
     return artist;
@@ -55,7 +50,7 @@ export class ArtistsController {
   update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const artist = this.artistsService.findOne(id);
+    const artist = this.artistsService.findBy(id);
     if (!artist) throw new HttpException('Artist does not exist', 404);
 
     const record: ArtistEntity = {
@@ -72,14 +67,8 @@ export class ArtistsController {
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const artist = this.artistsService.findOne(id);
+    const artist = this.artistsService.findBy(id);
     if (!artist) throw new HttpException('Artist does not exist', 404);
-    //TODO dublicate of code
-
-    const index = this.favorites.artists.findIndex(
-      (artist) => artist.id === id,
-    );
-    this.favorites.artists.splice(index, 1);
 
     this.artistsService.remove(id);
   }

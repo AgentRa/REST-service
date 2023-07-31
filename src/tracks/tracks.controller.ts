@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpException,
-  Inject,
   Param,
   Post,
   Put,
@@ -17,14 +16,10 @@ import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { plainToClass } from 'class-transformer';
-import { FavoriteEntity } from '../favorites/entities/favorite.entity';
 
 @Controller('track')
 export class TracksController {
-  constructor(
-    private readonly tracksService: TracksService,
-    @Inject('DATABASE') private favorites: FavoriteEntity,
-  ) {}
+  constructor(private readonly tracksService: TracksService) {}
 
   @Post()
   @HttpCode(201)
@@ -44,7 +39,7 @@ export class TracksController {
   findOne(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const track = this.tracksService.findOne(id);
+    const track = this.tracksService.findBy(id);
     if (!track) throw new HttpException('Track does not exist', 404);
 
     return track;
@@ -55,7 +50,7 @@ export class TracksController {
   update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const track = this.tracksService.findOne(id);
+    const track = this.tracksService.findBy(id);
     if (!track) throw new HttpException('Track does not exist', 404);
 
     const record: TrackEntity = {
@@ -74,11 +69,8 @@ export class TracksController {
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const track = this.tracksService.findOne(id);
+    const track = this.tracksService.findBy(id);
     if (!track) throw new HttpException('Track does not exist', 404);
-
-    const index = this.favorites.tracks.findIndex((artist) => artist.id === id);
-    this.favorites.tracks.splice(index, 1);
 
     return this.tracksService.remove(id);
   }

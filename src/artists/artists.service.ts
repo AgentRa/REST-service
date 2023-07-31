@@ -1,54 +1,65 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
+import { Injectable } from '@nestjs/common';
 import { ArtistEntity } from './entities/artist.entity';
-import { TracksService } from '../tracks/tracks.service';
-import { AlbumsService } from '../albums/albums.service';
+import { DatabaseService } from '../database/database.service';
+import { TrackEntity } from '../tracks/entities/track.entity';
+import { AlbumEntity } from '../albums/entities/album.entity';
 
 @Injectable()
-export class ArtistsService extends InMemoryDBService<ArtistEntity> {
-  @Inject(TracksService) private readonly tracksService: TracksService;
-  @Inject(AlbumsService) private readonly albumsService: AlbumsService;
+export class ArtistsService {
+  constructor(private databaseService: DatabaseService) {}
 
   create(record: ArtistEntity) {
-    return super.create(record);
+    return this.databaseService.artists.create(record);
   }
 
-  findAll() {
-    return super.getAll();
+  findAll(): ArtistEntity[] {
+    return this.databaseService.artists.findAll();
   }
 
-  findOne(id: string) {
-    return super.get(id);
+  findBy(id: string) {
+    return this.databaseService.artists.findBy(id);
   }
 
-  update(artist: ArtistEntity) {
-    super.update(artist);
-    return artist;
+  update(record: ArtistEntity) {
+    return this.databaseService.artists.update(record);
   }
 
   remove(id: string) {
-    const tracksWithArtistId = this.tracksService.query(
-      (track) => track.artistId === id,
+    const tracksWithArtistId = this.databaseService.tracks.records.reduce(
+      (acc: TrackEntity[], track: TrackEntity) => {
+        if (track.artistId === id) acc.push(track);
+        return acc;
+      },
+      [],
     );
 
     if (tracksWithArtistId.length) {
-      tracksWithArtistId.map((track) => {
+      tracksWithArtistId.map((track: TrackEntity) => {
         track.artistId = null;
-        this.tracksService.update(track);
+        this.databaseService.tracks.update(track);
       });
     }
 
-    const albumsWithArtistId = this.albumsService.query(
-      (album) => album.artistId === id,
+    const albumsWithArtistId = this.databaseService.albums.records.reduce(
+      (acc: AlbumEntity[], album: AlbumEntity) => {
+        if (album.artistId === id) acc.push(album);
+        return acc;
+      },
+      [],
     );
 
     if (albumsWithArtistId.length) {
-      albumsWithArtistId.map((album) => {
+      albumsWithArtistId.map((album: AlbumEntity) => {
         album.artistId = null;
-        this.albumsService.update(album);
+        this.databaseService.tracks.update(album);
       });
     }
 
-    super.delete(id);
+    const index = this.databaseService.favorites.artists.findIndex(
+      (artist) => artist.id === id,
+    );
+
+    this.databaseService.favorites.artists.splice(index, 1);
+    this.databaseService.artists.remove(id);
   }
 }

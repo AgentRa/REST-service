@@ -1,27 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { InMemoryDBService } from '@nestjs-addons/in-memory-db';
 import { UserEntity } from './entities/user.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
-export class UsersService extends InMemoryDBService<UserEntity> {
+export class UsersService {
+  constructor(private databaseService: DatabaseService) {}
+
   create(record: UserEntity): UserEntity {
-    return super.create(record);
+    const responseWithout = { ...this.databaseService.users.create(record) };
+    delete responseWithout['password'];
+    return responseWithout;
   }
 
   findAll() {
-    return super.getAll();
+    return this.databaseService.users.findAll();
   }
 
-  findOne(id: string) {
-    return super.get(id);
+  findBy(id: string) {
+    return this.databaseService.users.findBy(id);
   }
 
   update(record: UserEntity): UserEntity {
-    super.update(record);
-    return record;
+    const responseWithout = { ...this.databaseService.users.update(record) };
+    delete responseWithout['password'];
+    return responseWithout;
   }
 
   remove(id: string) {
-    super.delete(id);
+    this.databaseService.users.remove(id);
   }
 }

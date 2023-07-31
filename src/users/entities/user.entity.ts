@@ -1,4 +1,5 @@
 import { UpdatePasswordDto } from '../dto/update-user-password.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 export class UserEntity {
   id: string; // uuid v4
@@ -15,6 +16,7 @@ export class UserEntity {
       this.updatedAt = this.createdAt;
     }
     this.updatedAt = new Date().getTime();
+    this.id = uuidv4();
   }
 
   updatePassword(updatePasswordDto: UpdatePasswordDto) {
