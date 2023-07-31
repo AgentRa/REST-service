@@ -16,6 +16,13 @@ import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { plainToClass } from 'class-transformer';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 @Controller('track')
 export class TracksController {
@@ -23,6 +30,15 @@ export class TracksController {
 
   @Post()
   @HttpCode(201)
+  @ApiOperation({
+    summary: 'Create a new track',
+    description: 'Create a new track with the provided track data.',
+  })
+  @ApiBody({ type: CreateTrackDto })
+  @ApiCreatedResponse({
+    description: 'Successfully added the track to the library',
+    type: TrackEntity,
+  })
   create(@Body() createTrackDto: CreateTrackDto) {
     const record = plainToClass(TrackEntity, createTrackDto);
     return this.tracksService.create(record);
@@ -30,12 +46,31 @@ export class TracksController {
 
   @Get()
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get all tracks',
+    description: 'Retrieve a list of all tracks from the library.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully retrieved all tracks',
+    type: [TrackEntity],
+  })
   findAll() {
     return this.tracksService.findAll();
   }
 
   @Get(':id')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get track by ID',
+    description: 'Retrieve a track from the library by its unique ID.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully retrieved the track by ID',
+    type: TrackEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'Track with the provided ID does not exist',
+  })
   findOne(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
@@ -47,6 +82,18 @@ export class TracksController {
 
   @Put(':id')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Update track by ID',
+    description: 'Update a track in the library by its unique ID.',
+  })
+  @ApiBody({ type: UpdateTrackDto })
+  @ApiOkResponse({
+    description: 'Successfully updated the track by ID',
+    type: TrackEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'Track with the provided ID does not exist',
+  })
   update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
@@ -66,6 +113,16 @@ export class TracksController {
 
   @Delete(':id')
   @HttpCode(204)
+  @ApiOperation({
+    summary: 'Delete track by ID',
+    description: 'Delete a track from the library by its unique ID.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully deleted the track by ID',
+  })
+  @ApiNotFoundResponse({
+    description: 'Track with the provided ID does not exist',
+  })
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 

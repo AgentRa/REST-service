@@ -16,6 +16,14 @@ import { InvalidUUIDExeption } from '../users/errors';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { plainToClass } from 'class-transformer';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 @Controller('artist')
 export class ArtistsController {
@@ -23,6 +31,15 @@ export class ArtistsController {
 
   @Post()
   @HttpCode(201)
+  @ApiOperation({
+    summary: 'Create a new artist',
+    description: 'Create a new artist with the provided artist data.',
+  })
+  @ApiBody({ type: CreateArtistDto })
+  @ApiCreatedResponse({
+    description: 'Successfully added the artist to the collection',
+    type: ArtistEntity,
+  })
   create(@Body() createArtistDto: CreateArtistDto) {
     const record = plainToClass(ArtistEntity, createArtistDto);
     return this.artistsService.create(record);
@@ -30,12 +47,34 @@ export class ArtistsController {
 
   @Get()
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get all artists',
+    description: 'Retrieve a list of all artists from the collection.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully retrieved all artists',
+    type: [ArtistEntity],
+  })
   findAll() {
     return this.artistsService.findAll();
   }
 
   @Get(':id')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get artist by ID',
+    description: 'Retrieve an artist from the collection by its unique ID.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully retrieved the artist by ID',
+    type: ArtistEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'Artist with the provided ID does not exist',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid UUID provided',
+  })
   findOne(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
@@ -47,6 +86,21 @@ export class ArtistsController {
 
   @Put(':id')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Update artist by ID',
+    description: 'Update an artist in the collection by its unique ID.',
+  })
+  @ApiBody({ type: UpdateArtistDto })
+  @ApiOkResponse({
+    description: 'Successfully updated the artist by ID',
+    type: ArtistEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'Artist with the provided ID does not exist',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid UUID provided',
+  })
   update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
@@ -55,7 +109,7 @@ export class ArtistsController {
 
     const record: ArtistEntity = {
       id: artist.id,
-      name: updateArtistDto?.name || artist.name,
+      name: updateArtistDto?.name ?? artist.name,
       grammy: updateArtistDto?.grammy ?? artist.grammy,
     };
 
@@ -64,6 +118,19 @@ export class ArtistsController {
 
   @Delete(':id')
   @HttpCode(204)
+  @ApiOperation({
+    summary: 'Delete artist by ID',
+    description: 'Delete an artist from the collection by its unique ID.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully deleted the artist by ID',
+  })
+  @ApiNotFoundResponse({
+    description: 'Artist with the provided ID does not exist',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid UUID provided',
+  })
   remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
