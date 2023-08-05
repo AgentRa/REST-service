@@ -1,32 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { UserEntity } from './entities/user.entity';
-import { DatabaseService } from '../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
-  create(record: UserEntity): UserEntity {
-    const responseWithout = { ...this.databaseService.users.create(record) };
-    delete responseWithout['password'];
-    return responseWithout;
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  findAll() {
-    return this.databaseService.users.findAll();
+  async findOne(id: number): Promise<User> {
+    return this.userRepository.findOne({ where: { id } });
   }
 
-  findBy(id: string) {
-    return this.databaseService.users.findBy(id);
+  async create(user: Partial<User>): Promise<User> {
+    const newuser = this.userRepository.create(user);
+    return this.userRepository.save(newuser);
   }
 
-  update(record: UserEntity): UserEntity {
-    const responseWithout = { ...this.databaseService.users.update(record) };
-    delete responseWithout['password'];
-    return responseWithout;
+  async update(id: number, user: Partial<User>): Promise<User> {
+    await this.userRepository.update(id, user);
+    return this.userRepository.findOne({ where: { id } });
   }
 
-  remove(id: string) {
-    this.databaseService.users.remove(id);
+  async delete(id: number): Promise<void> {
+    await this.userRepository.delete(id);
   }
 }

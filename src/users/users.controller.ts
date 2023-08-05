@@ -3,128 +3,55 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
+  NotFoundException,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import {
-  InvalidUUIDExeption,
-  UserDoesNotExistException,
-  WrongOldPasswordExeption,
-} from './errors';
-import { validate } from 'uuid';
-import { UpdatePasswordDto } from './dto/update-user-password.dto';
-import { plainToClass } from 'class-transformer';
-import { UserEntity } from './entities/user.entity';
-import {
-  ApiBody,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
+import { User } from './user.entity';
 
 @Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  @HttpCode(201)
-  @ApiOperation({
-    summary: 'Create a new user',
-    description: 'Create a new user with the provided user data.',
-  })
-  @ApiBody({ type: CreateUserDto })
-  @ApiCreatedResponse({
-    description: 'The record has been successfully created.',
-    type: UserEntity,
-  })
-  create(@Body() createUserDto: CreateUserDto) {
-    const record = plainToClass(UserEntity, createUserDto);
-    return this.usersService.create(record);
-  }
-
+  //get all users
   @Get()
-  @ApiOperation({
-    summary: 'Get all users',
-    description: 'Get all users.',
-  })
-  @ApiOkResponse({
-    description: 'A users has been successfully fetched',
-    type: UserEntity,
-  })
-  @HttpCode(200)
-  findAll() {
+  async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
+  //get user by id
   @Get(':id')
-  @HttpCode(200)
-  @ApiOperation({
-    summary: 'Get a user by id',
-    description: 'Get a user by id.',
-  })
-  @ApiOkResponse({
-    description: 'A user has been successfully fetched',
-    type: UserEntity,
-  })
-  findBy(@Param('id') id: string) {
-    if (!validate(id)) throw new InvalidUUIDExeption();
-
-    const user = this.usersService.findBy(id);
-    if (!user) throw new UserDoesNotExistException();
-
-    return user;
+  async findOne(@Param('id') id: number): Promise<User> {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User does not exist!');
+    } else {
+      return user;
+    }
   }
 
+  //create user
+  @Post()
+  async create(@Body() user: User): Promise<User> {
+    return this.usersService.create(user);
+  }
+
+  //update user
   @Put(':id')
-  @HttpCode(200)
-  @ApiOperation({
-    summary: 'Password update',
-    description: 'Updates user password.',
-  })
-  @ApiBody({ type: UpdatePasswordDto })
-  @ApiOkResponse({
-    description: 'A user has been successfully updated',
-    type: UserEntity,
-  })
-  updatePassword(
-    @Param('id') id: string,
-    @Body() updatePasswordDto: UpdatePasswordDto,
-  ) {
-    if (!validate(id)) throw new InvalidUUIDExeption();
-
-    const user = this.usersService.findBy(id);
-    if (!user) throw new UserDoesNotExistException();
-
-    if (user.password !== updatePasswordDto.oldPassword)
-      throw new WrongOldPasswordExeption();
-
-    const updatedUser = plainToClass(UserEntity, user).updatePassword(
-      updatePasswordDto,
-    );
-
-    return this.usersService.update(updatedUser);
+  async update(@Param('id') id: number, @Body() user: User): Promise<any> {
+    return this.usersService.update(id, user);
   }
 
+  //delete user
   @Delete(':id')
-  @HttpCode(204)
-  @ApiOperation({
-    summary: 'Delete a user by id',
-    description: 'Delete a user by id.',
-  })
-  @ApiOkResponse({
-    description: 'A user has been successfully deleted',
-    type: UserEntity,
-  })
-  remove(@Param('id') id: string) {
-    if (!validate(id)) throw new InvalidUUIDExeption();
-
-    const user = this.usersService.findBy(id);
-    if (!user) throw new UserDoesNotExistException();
-
-    this.usersService.remove(id);
+  async delete(@Param('id') id: number): Promise<any> {
+    //handle error if user does not exist
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User does not exist!');
+    }
+    return this.usersService.delete(id);
   }
 }
