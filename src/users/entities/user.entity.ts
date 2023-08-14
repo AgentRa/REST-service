@@ -1,34 +1,50 @@
 import { UpdatePasswordDto } from '../dto/update-user-password.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Exclude, Transform } from 'class-transformer';
 
+@Entity()
 export class UserEntity {
   @ApiProperty()
+  @PrimaryGeneratedColumn('uuid')
   id: string; // uuid v4
+  @ApiProperty()
+  @Column()
   login: string;
   @ApiProperty()
+  @Column()
+  @Exclude({ toPlainOnly: true })
   password: string;
   @ApiProperty()
+  @Column('smallint')
   version = 1; // integer number, increments on update
   @ApiProperty()
-  createdAt: number; // timestamp of creation
+  @CreateDateColumn()
+  @Transform(({ value }) => value.getTime())
+  createdAt: Date; // timestamp of creation
   @ApiProperty()
-  updatedAt: number; // timestamp of last update
+  @CreateDateColumn()
+  @Transform(({ value }) => value.getTime())
+  updatedAt: Date; // timestamp of last update
 
   constructor(data: Partial<UserEntity>) {
-    Object.assign(this, data);
-    if (!this.createdAt) {
-      this.createdAt = new Date().getTime();
-      this.updatedAt = this.createdAt;
-    }
-    this.updatedAt = new Date().getTime();
-    this.id = uuidv4();
+    this.id = data?.id;
+    this.login = data?.login;
+    this.password = data?.password;
+    this.createdAt = data?.createdAt;
+    this.updatedAt = data?.updatedAt;
   }
 
   updatePassword(updatePasswordDto: UpdatePasswordDto) {
     this.password = updatePasswordDto.newPassword;
     this.version += 1;
-    this.updatedAt = new Date().getTime();
+    this.createdAt = new Date(this.createdAt);
+    this.updatedAt = new Date();
 
     return this;
   }

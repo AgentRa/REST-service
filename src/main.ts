@@ -13,6 +13,7 @@ async function bootstrap() {
     .setDescription('Rest API with CRUD functionality based on nest.js')
     .setVersion('1.0')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 

@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -7,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -26,25 +28,10 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @HttpCode(201)
-  @ApiOperation({
-    summary: 'Create a new user',
-    description: 'Create a new user with the provided user data.',
-  })
-  @ApiBody({ type: CreateUserDto })
-  @ApiCreatedResponse({
-    description: 'The record has been successfully created.',
-    type: UserEntity,
-  })
-  create(@Body() createUserDto: CreateUserDto) {
-    const record = plainToClass(UserEntity, createUserDto);
-    return this.usersService.create(record);
-  }
 
   @Get()
   @ApiOperation({
@@ -56,8 +43,8 @@ export class UsersController {
     type: UserEntity,
   })
   @HttpCode(200)
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
@@ -70,13 +57,29 @@ export class UsersController {
     description: 'A user has been successfully fetched',
     type: UserEntity,
   })
-  findBy(@Param('id') id: string) {
+  async findBy(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const user = this.usersService.findBy(id);
+    const user = await this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
     return user;
+  }
+
+  @Post()
+  @HttpCode(201)
+  @ApiOperation({
+    summary: 'Create a new user',
+    description: 'Create a new user with the provided user data.',
+  })
+  @ApiBody({ type: CreateUserDto })
+  @ApiCreatedResponse({
+    description: 'The record has been successfully created.',
+    type: UserEntity,
+  })
+  async create(@Body() createUserDto: CreateUserDto) {
+    const record = plainToClass(UserEntity, createUserDto);
+    return this.usersService.create(record);
   }
 
   @Put(':id')
@@ -90,13 +93,13 @@ export class UsersController {
     description: 'A user has been successfully updated',
     type: UserEntity,
   })
-  updatePassword(
+  async updatePassword(
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
-    const user = this.usersService.findBy(id);
+    const user = await this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
     if (user.password !== updatePasswordDto.oldPassword)
@@ -119,12 +122,12 @@ export class UsersController {
     description: 'A user has been successfully deleted',
     type: UserEntity,
   })
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     if (!validate(id)) throw new InvalidUUIDExeption();
 
     const user = this.usersService.findBy(id);
     if (!user) throw new UserDoesNotExistException();
 
-    this.usersService.remove(id);
+    return this.usersService.remove(id);
   }
 }
